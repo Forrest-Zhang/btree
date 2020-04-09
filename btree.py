@@ -318,7 +318,7 @@ class btree:
 
         return self.root.traverse([], callback, cb_data)
 
-    def search(self, key):
+    def search(self, key) -> [btree_item]:
         items = []
         self.root.search(items, key)
         return items
@@ -331,12 +331,12 @@ class btree:
             self.height += 1
         self.size += 1
 
-    def insert(self, key, value):
+    def insert(self, key, value) -> btree_item:
         item = btree_item(key, value)
         self.insert_item(item)
         return item
 
-    def delete(self, key, item:btree_item=None):
+    def delete(self, key, item:btree_item=None) -> None or btree_item:
         if isinstance(item, btree_item):
             key = item.key  # avoid consistent issue
 
@@ -351,7 +351,7 @@ class btree:
             self.size -= 1
             return removed
 
-    def delete_all(self, key) -> btree_item:
+    def delete_all(self, key) -> [btree_item]:
         items = []
         while True:
             # item = None, remove the first item with key
@@ -451,7 +451,7 @@ if "__main__" == __name__:
                 self.traverse(dump_item)
                 logger.info('---------------')
 
-        def search(self, key):
+        def search(self, key) -> [btree_item]:
             items = super().search(key)
             if (self.dbg_flags & self.DEBUG_SEARCH):
                 logger.info(f'... search(key: {key}) = #{len(items)}: {items}')
@@ -463,21 +463,21 @@ if "__main__" == __name__:
             super().insert_item(item)
             self.check()
 
-        def insert(self, key, value):
+        def insert(self, key, value) -> btree_item:
             if (self.dbg_flags & self.DEBUG_INSERT):
                 logger.info(f'+++ insert(key: {key}, value: {value})')
             item = super().insert(key, value)
             self.check()
             return item
 
-        def delete(self, key, item:btree_item=None):
+        def delete(self, key, item:btree_item=None) -> None or btree_item:
             removed = super().delete(key, item)
             if (self.dbg_flags & self.DEBUG_DELETE):
                 logger.info(f'--- delete(key: {key}, item: {item}) = {removed}')
             self.check()
             return removed
 
-        def delete_all(self, key) -> btree_item:
+        def delete_all(self, key) -> [btree_item]:
             if (self.dbg_flags & self.DEBUG_DELETE):
                 logger.info(f'--- delete_all(key: {key})')
             items = super().delete_all(key)
