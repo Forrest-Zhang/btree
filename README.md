@@ -1,4 +1,4 @@
-# btree-pure-python
+# btree
 B-Tree implementation with pure Python by Forrest Zhang (Forrest@263.net)
 
 ## Features
@@ -13,10 +13,10 @@ B-Tree implementation with pure Python by Forrest Zhang (Forrest@263.net)
 
 ## API
 * class btree_item:
-    * def __init__(self, key, value):
+    * def \_\_init\_\_(self, key, value):
 
 * class btree:
-    * def __init__(self, min_degree: int):
+    * def \_\_init\_\_(self, min_degree: int):
     * def traverse(self, callback=None, cb_data=None):
     * def search(self, key) -> [btree_item]:
     * def insert_item(self, item:btree_item):
