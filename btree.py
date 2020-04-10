@@ -84,6 +84,73 @@ class btree_node:
         self.items = items or []  # as keys
         self.children: [btree_node] = children or []
 
+        # number of items in the subtree
+        n_item = len(self.items)
+        for child in self.children:
+            n_item += child.n_item
+        self.n_item = n_item
+
+    def get_n_item(self):
+        n_item = len(self.items)
+        for child in self.children:
+            n_item += child.get_n_item()
+        return n_item
+
+    def get_n_node(self):
+        n_node = len(self.children)
+        for child in self.children:
+            n_node += child.get_n_node()
+        return n_node
+
+    def __len__(self):
+        return self.n_item
+
+    def getitem(self, pos):
+        for i, child in enumerate(self.children):
+            if pos < child.n_item:
+                return child.getitem(pos)
+            pos -= child.n_item + 1
+            if pos < 0:
+                return self.items[i]
+
+        # must be a leaf node if got here
+        return self.items[pos]
+
+    def __getitem__(self, index) -> btree_item or [btree_item]:
+        top = self.n_item
+
+        if isinstance(index, int):
+            if index >= 0 and index < self.n_item:
+                return self.getitem(index)
+        elif isinstance(index, slice):
+            start, stop, step = index.start, index.stop, index.step
+
+            # set default for start, stop and step
+            if stop is None:
+                start, stop, step = 0, top, 1
+            elif start is None:
+                start = 0
+            elif step is None:
+                step = 1
+
+            if start > 0 and start < top and (
+                (step > 0 and stop > start and stop <= top)
+                or (step < 0 and stop < start and stop > -2)):
+                items = []
+                for index in range(start, stop, step):
+                    items.append(self.getitem(index))
+                return items
+
+        raise IndexError(f'{index} out of range [0, {top})')
+
+    def __iter__(self):
+        if self.children:
+            yield from self.children[0].__iter__()
+        for i, item in enumerate(self.items, 1):
+            yield item
+            if self.children:
+                yield from self.children[i].__iter__()
+
     def is_full(self):
         return len(self.items) > self.max_degree
 
@@ -104,6 +171,9 @@ class btree_node:
             stats.error(f'node is full {self} @ {path}')
         elif self.is_poor() and path:
             stats.error(f'node is poor {self} @ {path}')
+        if self.n_item != self.get_n_item():
+            stats.error(f'node numbers incorrect #item: {self.n_item}'
+                        f' vs. {self.get_n_item()} @ {path}')
 
         if self.children:
             if len(self.children) < 2:
@@ -172,6 +242,7 @@ class btree_node:
         del self.items[n:]  # remove right part items
         del self.children[n:]  # remove right part of children
 
+        self.n_item -= right.n_item + 1
         return self.items.pop(n - 1), right
 
     def insert(self, key, item: btree_item) -> bool:
@@ -183,6 +254,7 @@ class btree_node:
                 break
             i += 1
 
+        self.n_item += 1  # each node on the path increased 1 item
         if self.children:
             if self.children[i].insert(key, item):
                 # child is full, split it
@@ -204,32 +276,55 @@ class btree_node:
         left.children += right.children  # and its children
         del self.children[index + 1]  # remove right child from self
 
+        left.n_item += right.n_item + 1  # + right's items and 1 item of self
+
     def _get_child(self, index:int) -> 'btree_node':
+        '''
+        if child has not enough items (< minimum degree),
+        and delete() remove one more item from it,
+        then its items will be less than minimum degree.
+        therefore, borrow an item and child from left/right sibling,
+        or merge it with left/right sibling, make sure the items are enough.
+        '''
         child = self.children[index]
-        if not child.is_enough():
-            left_index = index - 1
-            if index > 0 and self.children[left_index].is_enough():
-                # borrow from left sibling
-                left = self.children[left_index]
-                child.items.insert(0, self.items[left_index])
-                self.items[left_index] = left.items.pop(-1)
-                if left.children:
-                    child.children.insert(0, left.children.pop(-1))
-            elif index < len(self.items):
-                right = self.children[index + 1]
-                if right.is_enough():
-                    # borrow from right sibling
-                    child.items.append(self.items[index])
-                    self.items[index] = right.items.pop(0)
-                    if right.children:
-                        child.children.append(right.children.pop(0))
-                else:
-                    # merge with right sibling
-                    self._merge(index)
+        if child.is_enough():
+            return child
+
+        left_index = index - 1  # first child has no left sibling
+        if index > 0 and self.children[left_index].is_enough():
+            # borrow from left sibling
+            left = self.children[left_index]
+            child.items.insert(0, self.items[left_index])
+            self.items[left_index] = left.items.pop(-1)
+            if left.children:
+                subtree = left.children.pop(-1)
+                child.children.insert(0, subtree)
+                left.n_item -= subtree.n_item
+                child.n_item += subtree.n_item
+            left.n_item -= 1
+            child.n_item += 1
+        elif index < len(self.items):  # last child has no right sibling
+            right = self.children[index + 1]
+            if right.is_enough():
+                # borrow from the right sibling
+                child.items.append(self.items[index])
+                self.items[index] = right.items.pop(0)
+                if right.children:
+                    subtree = right.children.pop(0)
+                    child.children.append(subtree)
+                    right.n_item -= subtree.n_item
+                    child.n_item += subtree.n_item
+                right.n_item -= 1
+                child.n_item += 1
             else:
-                # merge to left sibling
-                self._merge(left_index)
-                child = self.children[left_index]
+                # merge the right sibling into current child
+                self._merge(index)
+        else:
+            # if no right sibling, it must have a left sibling
+            # because minimum degree >= 2.
+            # merge current child into left sibling
+            self._merge(left_index)
+            return self.children[left_index]
         return child
 
     def delete(self, key, item:btree_item=None) -> None or btree_item:
@@ -237,6 +332,7 @@ class btree_node:
         if not self.children:
             for index, it in enumerate(self.items):
                 if it == item or not item and it.key == key:
+                    self.n_item -= 1
                     return self.items.pop(index)
             return
 
@@ -248,6 +344,7 @@ class btree_node:
             # found it in left child?
             found = self._get_child(index).delete(key, item)
             if found:
+                self.n_item -= 1  # every node lost 1 item on the path
                 return found
 
             # found it in items?
@@ -277,6 +374,7 @@ class btree_node:
                         # merge it, then delete it
                         self._merge(index)
                         left.delete(key, it)
+                self.n_item -= 1
                 return it
 
             if it.key > key:
@@ -284,7 +382,10 @@ class btree_node:
 
         # try last child
         index = len(self.items)
-        return self._get_child(index).delete(key, item)
+        found = self._get_child(index).delete(key, item)
+        if found:
+            self.n_item -= 1  # every node lost 1 item on the path
+            return found
 
 
 class btree:
@@ -293,12 +394,27 @@ class btree:
     def __init__(self, min_degree: int):
         if min_degree < 2:
             min_degree = 2
-        self.size = 0
         self.height = 0
         self.root = btree_node(min_degree)
 
-    def len(self):
-        return self.size
+    # support sequence operation: btree[index]
+    def __len__(self):
+        return self.root.__len__()
+
+    def __getitem__(self, index):
+        return self.root.__getitem__(index)
+
+    def __delitem__(self, index) -> btree_item:
+        self.delete(None, self[index])
+
+    def __iter__(self):
+        return self.root.__iter__()
+
+    def n_node(self):
+        return self.root.get_n_node()
+
+    def dump(self):
+        pass
 
     def traverse(self, callback=None, cb_data=None):
         '''
@@ -329,7 +445,6 @@ class btree:
             self.root = btree_node(right.min_degree,
                                    [middle], [self.root, right])
             self.height += 1
-        self.size += 1
 
     def insert(self, key, value) -> btree_item:
         item = btree_item(key, value)
@@ -347,9 +462,7 @@ class btree:
             self.height -= 1
             self.root = self.root.children[0]
 
-        if removed is not None:
-            self.size -= 1
-            return removed
+        return removed
 
     def delete_all(self, key) -> [btree_item]:
         items = []
@@ -425,9 +538,10 @@ if "__main__" == __name__:
 
             stats = btree_stats()
             height = self.root.check(stats, [])
-            if stats.errors or height != self.height or stats.size != self.size:
+            if stats.errors \
+                or height != self.height or stats.size != len(self):
                 logger.error(f'height: {height}/{self.height} '
-                             f'size: {stats.size}/{self.size} '
+                             f'size: {stats.size}/{len(self)} '
                              f'errors: {stats.errors} '
                              f'key range: {stats.min} - {stats.max}')
                 self.dump()
@@ -440,7 +554,7 @@ if "__main__" == __name__:
                             f'#items/node: {t-1} - {2 * t - 1}, '
                             # f'#children/node: {t} - {2 * t}, '
                             f'height: {self.height}, '
-                            f'items: {self.size}'
+                            f'items: {len(self)}'
                             )
 
                 def dump_item(path: [int], item: btree_item, _cb_data):
@@ -473,7 +587,8 @@ if "__main__" == __name__:
         def delete(self, key, item:btree_item=None) -> None or btree_item:
             removed = super().delete(key, item)
             if (self.dbg_flags & self.DEBUG_DELETE):
-                logger.info(f'--- delete(key: {key}, item: {item}) = {removed}')
+                logger.info(
+                    f'--- delete(key: {key}, item: {item}) = {removed}')
             self.check()
             return removed
 
@@ -486,29 +601,34 @@ if "__main__" == __name__:
             self.check()
             return items
 
+    def new_btree(min_degree, _dbg_flags=btree_debug.DEBUG_ALL):
+        # return btree(min_degree)  # it's pretty fast without debug message,
+        return btree_debug(min_degree, _dbg_flags)
+
     #
     # test case for traverse() and key order
     #
-    btr = btree_debug(2)
+    logger.info('=== insert, traverse and key order test ===')
+    btr = new_btree(2)
 
     import string
     from random import random
 
-    # build a string that contains ascii letters and digits
-    orignal = string.digits + string.ascii_letters
-    orignal = list(orignal)
-    orignal.sort()
-    orignal = ''.join(orignal)
+    # build a string that contains ASCII letters and digits
+    original = string.digits + string.ascii_letters
+    original = list(original)
+    original.sort()
+    original = ''.join(original)
 
-    # insert these letters into a btree in random order
-    seq, lst = 0, list(orignal)
+    logger.info(f'randomly insert each letter of "{original}" into a btree')
+    seq, lst = 0, list(original)
     while lst:
         letter = lst.pop(int(random() * len(lst)))
         btr.insert(letter, seq)
         seq += 1
     btr.dump()
 
-    # get back
+    # get them back
     get_back = []
 
     def traverse_cb(_path, item, data):
@@ -517,16 +637,30 @@ if "__main__" == __name__:
     btr.traverse(traverse_cb, get_back)
     get_back = ''.join(get_back)
 
-    logger.info(f'original letters: {orignal}')
+    logger.info(f'sorted letters:   {original}')
     logger.info(f'letters in btree: {get_back}')
+    if original == get_back:
+        logger.info('letter order in btree is correct')
+    else:
+        logger.error('letter order in btree is wrong')
 
-    if orignal != get_back:
-        exit()
+    logger.info('=== iterator and sequence test ===')
+    logger.info('get items by indices, like: "for item in btree[35:9:-1]"')
+    for it in btr[35:9:-1]:
+        logger.info(f'{it}')
+
+    logger.info(f'btree[10]: {btr[10]}')
+    logger.info(f'del btree[10]')
+    del btr[10]
+    logger.info(f'btree[10]: {btr[10]}')
+
+    logger.info(f'"btree[20] in btr" is {btr[20] in btr}')
 
     #
     # test case for search(), delete()
     #
-    btr = btree_debug(2)
+    logger.info('=== search() and delete() test ===')
+    btr = new_btree(2)
     for key in range(14):
         btr.insert(key, f'{key}')
 
@@ -541,20 +675,23 @@ if "__main__" == __name__:
     item5 = btr.delete(5)
     btr.dump()
 
-    # what happens if delete a non-exist key?
+    logger.info('what happens if delete a non-exist key?')
     btr.delete(5)
     btr.dump()
 
-    # what happens if delete a removed item?
+    logger.info('what happens if delete a removed item?')
     btr.root.delete(5, item5)
     btr.dump()
 
+    logger.info('delete the 4th item which key is "4"')
     if btr.delete(4, btr.search(4)[3]):
         btr.dump()
 
+    logger.info('delete all rest items which key is "4"')
     if btr.delete_all(4):
         btr.dump()
 
+    logger.info('delete key in reversed(range(15))')
     for key in reversed(range(15)):
         if btr.delete(key):
             btr.dump()
@@ -562,57 +699,62 @@ if "__main__" == __name__:
     #
     # test case for another minimum degree and duplicated key
     #
-    btr = btree_debug(4, btree_debug.DEBUG_DUMP)
+    btr = new_btree(4, btree_debug.DEBUG_DUMP)
 
-    logger.info('insert: "={key}=" in range(1001)')
-    for key in range(1001):
+    max_test_key = 1000
+    logger.info(f'insert: "=key=" in range({max_test_key})')
+    for key in range(max_test_key):
         btr.insert(key, f'={key}=')
 
-    logger.info('delete: key in range(1001)')
-    for key in range(1001):
+    logger.info(f'delete: key in range({max_test_key})')
+    for key in range(max_test_key):
         btr.delete(key)
-
     btr.dump()
 
-    logger.info('insert: "+{key}+" in range(1001)')
-    for key in range(1001):
+    logger.info(f'insert: "+key+" in range({max_test_key})')
+    for key in range(max_test_key):
         btr.insert(key, f'+{key}+')
 
-    logger.info('insert: "#{key}###" in reversed(range(100, 200, 2))')
+    logger.info('insert: "#key###" in reversed(range(100, 200, 2))')
     for key in reversed(range(100, 200, 2)):
         btr.insert(key, f'#{key}###')
-
     btr.dump()
 
-    logger.info('delete: key in reversed(range(1001))')
-    for key in reversed(range(1001)):
+    logger.info(f'delete: key in reversed(range({max_test_key}))')
+    for key in reversed(range(max_test_key)):
         btr.delete(key)
     btr.dump()
 
     #
     # test case for discontinuous delete()
     #
-    btr = btree_debug(3, btree_debug.DEBUG_DUMP)
+    logger.info('=== Primary Numbers ^_^ ===')
+    btr = new_btree(3, btree_debug.DEBUG_DUMP)
 
-    logger.info('insert: "={key}=" in range(1001)')
-    for key in range(1001):
+    logger.info(f'insert: "=key=" in range({max_test_key})')
+    for key in range(max_test_key):
         btr.insert(key, f'={key}=')
 
-    rev = False
-    for primary in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-                    31, 37, 41, 43, 47, 53, 59, 61, 67,
-                    71, 73, 79, 83, 89, 97):
-        if rev:
-            logger.info(f'delete: key in reversed(range(0, 1001, {primary}))')
-            for key in reversed(range(0, 1001, primary)):
+    for index in range(2, max_test_key):
+        primary = btr[index].key
+        if primary * 2 >= max_test_key:
+            break
+        r = range(primary * 2, max_test_key, primary)
+        if index & 1:
+            logger.info(f'delete: key in reversed({r})')
+            for key in reversed(r):
                 btr.delete(key)
-            rev = False
         else:
-            rev = True
-            logger.info(f'delete: key in range(0, 1001, {primary})')
-            for key in range(0, 1001, primary):
+            logger.info(f'delete: key in {r}')
+            for key in r:
                 btr.delete(key)
 
+    logger.info('del btree[1]')
+    del btr[1]
+    logger.info('del btree[0]')
+    del btr[0]
+
+    logger.info('remainder items must be primary numbers')
     btr.dump()
 
     logger.info('test finished')
