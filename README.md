@@ -17,17 +17,27 @@ B-Tree implementation with pure Python by Forrest Zhang (Forrest@263.net)
     * Check node item/children numbers and key orders in tree
 
 ## API
+* constants:
+    * BTREE_MIN_DEGREE_MIN = 2
+    * BTREE_MIN_DEGREE_DEFAULT = 7
+
 * class btree_item:
+    * member: bt_key
+    * def \_\_init\_\_(self, bt_key):
+
+* class btree_kv(btree_item):
+    * member: value
     * def \_\_init\_\_(self, key, value):
 
 * class btree:
-    * operator: []
     * operator: in
-    * def \_\_init\_\_(self, min_degree: int):
+    * operator: []
+    * operator: += []
+    * def \_\_init\_\_(self, min_degree: int=BTREE_MIN_DEGREE_DEFAULT):
     * def traverse(self, callback=None, cb_data=None):
     * def search(self, key) -> [btree_item]:
-    * def insert_item(self, item:btree_item):
-    * def insert(self, key, value) -> btree_item:
+    * def insert(self, item:btree_item):
+    * def insert_kv(self, key, value) -> btree_kv:
     * def delete(self, key, item:btree_item=None) -> None or btree_item:
     * def delete_all(self, key) -> [btree_item]:
 
