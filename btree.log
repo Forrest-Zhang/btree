@@ -1,230 +1,284 @@
+INFO - === binary range searching cases ===
+INFO - insert 10:
+INFO - 10: 0, 0 [] of []
+INFO - 10: 0, 1 [10] of [10]
+INFO - insert 10:
+INFO - 10: 0, 1 [10] of [10]
+INFO - 10: 0, 2 [10, 10] of [10, 10]
+INFO - insert 8:
+INFO - 8: 0, 0 [] of [10, 10]
+INFO - 8: 0, 1 [8] of [8, 10, 10]
+INFO - insert 12:
+INFO - 12: 3, 3 [] of [8, 10, 10]
+INFO - 12: 3, 4 [12] of [8, 10, 10, 12]
+INFO - insert 9:
+INFO - 9: 1, 1 [] of [8, 10, 10, 12]
+INFO - 9: 1, 2 [9] of [8, 9, 10, 10, 12]
+INFO - insert 11:
+INFO - 11: 4, 4 [] of [8, 9, 10, 10, 12]
+INFO - 11: 4, 5 [11] of [8, 9, 10, 10, 11, 12]
+INFO - 18: 0, 0 [] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 19: 0, 0 [] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 20: 0, 1 [20] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 21: 1, 1 [] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 22: 1, 2 [22] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 30: 5, 6 [30] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 38: 9, 10 [38] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 39: 10, 10 [] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 40: 10, 11 [40] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 41: 11, 11 [] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 42: 11, 11 [] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - insert 30:
+INFO - 30: 5, 6 [30] of [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+INFO - 30: 5, 7 [30, 30] of [20, 22, 24, 26, 28, 30, 30, 32, 34, 36, 38, 40]
+INFO - insert 30:
+INFO - 30: 5, 7 [30, 30] of [20, 22, 24, 26, 28, 30, 30, 32, 34, 36, 38, 40]
+INFO - 30: 5, 8 [30, 30, 30] of [20, 22, 24, 26, 28, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - insert 30:
+INFO - 30: 5, 8 [30, 30, 30] of [20, 22, 24, 26, 28, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - 30: 5, 9 [30, 30, 30, 30] of [20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - insert 18:
+INFO - 18: 0, 0 [] of [20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - 18: 0, 1 [18] of [18, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - insert 19:
+INFO - 19: 1, 1 [] of [18, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - 19: 1, 2 [19] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - insert 39:
+INFO - 39: 15, 15 [] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 40]
+INFO - 39: 15, 16 [39] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 39, 40]
+INFO - insert 41:
+INFO - 41: 17, 17 [] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 39, 40]
+INFO - 41: 17, 18 [41] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 39, 40, 41]
+INFO - insert 42:
+INFO - 42: 18, 18 [] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 39, 40, 41]
+INFO - 42: 18, 19 [42] of [18, 19, 20, 22, 24, 26, 28, 30, 30, 30, 30, 32, 34, 36, 38, 39, 40, 41, 42]
 INFO - === insert, traverse and bt_key order test ===
 INFO - B-Tree Order: 4, minimum degree: 2, #items/node: 1 - 3, height: 0, items: 0
 INFO - ---------------
 INFO - randomly insert each letter of "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" into a btree
-INFO - +++ insert_kv(bt_key: l, value: 0)
-INFO - +++ insert(item: l: 0)
-INFO - +++ insert_kv(bt_key: 9, value: 1)
-INFO - +++ insert(item: 9: 1)
-INFO - +++ insert_kv(bt_key: m, value: 2)
-INFO - +++ insert(item: m: 2)
-INFO - +++ insert_kv(bt_key: b, value: 3)
-INFO - +++ insert(item: b: 3)
-INFO - +++ insert_kv(bt_key: 2, value: 4)
-INFO - +++ insert(item: 2: 4)
-INFO - +++ insert_kv(bt_key: M, value: 5)
-INFO - +++ insert(item: M: 5)
-INFO - +++ insert_kv(bt_key: H, value: 6)
-INFO - +++ insert(item: H: 6)
-INFO - +++ insert_kv(bt_key: N, value: 7)
-INFO - +++ insert(item: N: 7)
-INFO - +++ insert_kv(bt_key: k, value: 8)
-INFO - +++ insert(item: k: 8)
-INFO - +++ insert_kv(bt_key: 3, value: 9)
-INFO - +++ insert(item: 3: 9)
-INFO - +++ insert_kv(bt_key: X, value: 10)
-INFO - +++ insert(item: X: 10)
-INFO - +++ insert_kv(bt_key: 0, value: 11)
-INFO - +++ insert(item: 0: 11)
-INFO - +++ insert_kv(bt_key: B, value: 12)
-INFO - +++ insert(item: B: 12)
-INFO - +++ insert_kv(bt_key: C, value: 13)
-INFO - +++ insert(item: C: 13)
-INFO - +++ insert_kv(bt_key: e, value: 14)
-INFO - +++ insert(item: e: 14)
-INFO - +++ insert_kv(bt_key: i, value: 15)
-INFO - +++ insert(item: i: 15)
-INFO - +++ insert_kv(bt_key: A, value: 16)
-INFO - +++ insert(item: A: 16)
-INFO - +++ insert_kv(bt_key: p, value: 17)
-INFO - +++ insert(item: p: 17)
-INFO - +++ insert_kv(bt_key: L, value: 18)
-INFO - +++ insert(item: L: 18)
-INFO - +++ insert_kv(bt_key: t, value: 19)
-INFO - +++ insert(item: t: 19)
+INFO - +++ insert_kv(bt_key: c, value: 0)
+INFO - +++ insert(item: c: 0)
+INFO - +++ insert_kv(bt_key: 6, value: 1)
+INFO - +++ insert(item: 6: 1)
+INFO - +++ insert_kv(bt_key: Y, value: 2)
+INFO - +++ insert(item: Y: 2)
+INFO - +++ insert_kv(bt_key: E, value: 3)
+INFO - +++ insert(item: E: 3)
+INFO - +++ insert_kv(bt_key: T, value: 4)
+INFO - +++ insert(item: T: 4)
+INFO - +++ insert_kv(bt_key: z, value: 5)
+INFO - +++ insert(item: z: 5)
+INFO - +++ insert_kv(bt_key: k, value: 6)
+INFO - +++ insert(item: k: 6)
+INFO - +++ insert_kv(bt_key: t, value: 7)
+INFO - +++ insert(item: t: 7)
+INFO - +++ insert_kv(bt_key: Q, value: 8)
+INFO - +++ insert(item: Q: 8)
+INFO - +++ insert_kv(bt_key: L, value: 9)
+INFO - +++ insert(item: L: 9)
+INFO - +++ insert_kv(bt_key: H, value: 10)
+INFO - +++ insert(item: H: 10)
+INFO - +++ insert_kv(bt_key: W, value: 11)
+INFO - +++ insert(item: W: 11)
+INFO - +++ insert_kv(bt_key: g, value: 12)
+INFO - +++ insert(item: g: 12)
+INFO - +++ insert_kv(bt_key: X, value: 13)
+INFO - +++ insert(item: X: 13)
+INFO - +++ insert_kv(bt_key: b, value: 14)
+INFO - +++ insert(item: b: 14)
+INFO - +++ insert_kv(bt_key: J, value: 15)
+INFO - +++ insert(item: J: 15)
+INFO - +++ insert_kv(bt_key: V, value: 16)
+INFO - +++ insert(item: V: 16)
+INFO - +++ insert_kv(bt_key: a, value: 17)
+INFO - +++ insert(item: a: 17)
+INFO - +++ insert_kv(bt_key: p, value: 18)
+INFO - +++ insert(item: p: 18)
+INFO - +++ insert_kv(bt_key: G, value: 19)
+INFO - +++ insert(item: G: 19)
 INFO - +++ insert_kv(bt_key: v, value: 20)
 INFO - +++ insert(item: v: 20)
-INFO - +++ insert_kv(bt_key: W, value: 21)
-INFO - +++ insert(item: W: 21)
-INFO - +++ insert_kv(bt_key: n, value: 22)
-INFO - +++ insert(item: n: 22)
-INFO - +++ insert_kv(bt_key: T, value: 23)
-INFO - +++ insert(item: T: 23)
-INFO - +++ insert_kv(bt_key: s, value: 24)
-INFO - +++ insert(item: s: 24)
-INFO - +++ insert_kv(bt_key: O, value: 25)
-INFO - +++ insert(item: O: 25)
-INFO - +++ insert_kv(bt_key: u, value: 26)
-INFO - +++ insert(item: u: 26)
-INFO - +++ insert_kv(bt_key: c, value: 27)
-INFO - +++ insert(item: c: 27)
-INFO - +++ insert_kv(bt_key: g, value: 28)
-INFO - +++ insert(item: g: 28)
-INFO - +++ insert_kv(bt_key: 4, value: 29)
-INFO - +++ insert(item: 4: 29)
-INFO - +++ insert_kv(bt_key: q, value: 30)
-INFO - +++ insert(item: q: 30)
-INFO - +++ insert_kv(bt_key: Z, value: 31)
-INFO - +++ insert(item: Z: 31)
-INFO - +++ insert_kv(bt_key: 6, value: 32)
-INFO - +++ insert(item: 6: 32)
-INFO - +++ insert_kv(bt_key: G, value: 33)
-INFO - +++ insert(item: G: 33)
-INFO - +++ insert_kv(bt_key: R, value: 34)
-INFO - +++ insert(item: R: 34)
-INFO - +++ insert_kv(bt_key: K, value: 35)
-INFO - +++ insert(item: K: 35)
-INFO - +++ insert_kv(bt_key: F, value: 36)
-INFO - +++ insert(item: F: 36)
-INFO - +++ insert_kv(bt_key: E, value: 37)
-INFO - +++ insert(item: E: 37)
-INFO - +++ insert_kv(bt_key: V, value: 38)
-INFO - +++ insert(item: V: 38)
-INFO - +++ insert_kv(bt_key: d, value: 39)
-INFO - +++ insert(item: d: 39)
-INFO - +++ insert_kv(bt_key: o, value: 40)
-INFO - +++ insert(item: o: 40)
-INFO - +++ insert_kv(bt_key: I, value: 41)
-INFO - +++ insert(item: I: 41)
-INFO - +++ insert_kv(bt_key: J, value: 42)
-INFO - +++ insert(item: J: 42)
-INFO - +++ insert_kv(bt_key: z, value: 43)
-INFO - +++ insert(item: z: 43)
-INFO - +++ insert_kv(bt_key: P, value: 44)
-INFO - +++ insert(item: P: 44)
-INFO - +++ insert_kv(bt_key: 5, value: 45)
-INFO - +++ insert(item: 5: 45)
-INFO - +++ insert_kv(bt_key: U, value: 46)
-INFO - +++ insert(item: U: 46)
+INFO - +++ insert_kv(bt_key: h, value: 21)
+INFO - +++ insert(item: h: 21)
+INFO - +++ insert_kv(bt_key: M, value: 22)
+INFO - +++ insert(item: M: 22)
+INFO - +++ insert_kv(bt_key: B, value: 23)
+INFO - +++ insert(item: B: 23)
+INFO - +++ insert_kv(bt_key: U, value: 24)
+INFO - +++ insert(item: U: 24)
+INFO - +++ insert_kv(bt_key: s, value: 25)
+INFO - +++ insert(item: s: 25)
+INFO - +++ insert_kv(bt_key: I, value: 26)
+INFO - +++ insert(item: I: 26)
+INFO - +++ insert_kv(bt_key: C, value: 27)
+INFO - +++ insert(item: C: 27)
+INFO - +++ insert_kv(bt_key: y, value: 28)
+INFO - +++ insert(item: y: 28)
+INFO - +++ insert_kv(bt_key: u, value: 29)
+INFO - +++ insert(item: u: 29)
+INFO - +++ insert_kv(bt_key: O, value: 30)
+INFO - +++ insert(item: O: 30)
+INFO - +++ insert_kv(bt_key: o, value: 31)
+INFO - +++ insert(item: o: 31)
+INFO - +++ insert_kv(bt_key: l, value: 32)
+INFO - +++ insert(item: l: 32)
+INFO - +++ insert_kv(bt_key: S, value: 33)
+INFO - +++ insert(item: S: 33)
+INFO - +++ insert_kv(bt_key: x, value: 34)
+INFO - +++ insert(item: x: 34)
+INFO - +++ insert_kv(bt_key: N, value: 35)
+INFO - +++ insert(item: N: 35)
+INFO - +++ insert_kv(bt_key: r, value: 36)
+INFO - +++ insert(item: r: 36)
+INFO - +++ insert_kv(bt_key: q, value: 37)
+INFO - +++ insert(item: q: 37)
+INFO - +++ insert_kv(bt_key: Z, value: 38)
+INFO - +++ insert(item: Z: 38)
+INFO - +++ insert_kv(bt_key: 4, value: 39)
+INFO - +++ insert(item: 4: 39)
+INFO - +++ insert_kv(bt_key: 0, value: 40)
+INFO - +++ insert(item: 0: 40)
+INFO - +++ insert_kv(bt_key: R, value: 41)
+INFO - +++ insert(item: R: 41)
+INFO - +++ insert_kv(bt_key: 8, value: 42)
+INFO - +++ insert(item: 8: 42)
+INFO - +++ insert_kv(bt_key: P, value: 43)
+INFO - +++ insert(item: P: 43)
+INFO - +++ insert_kv(bt_key: 5, value: 44)
+INFO - +++ insert(item: 5: 44)
+INFO - +++ insert_kv(bt_key: e, value: 45)
+INFO - +++ insert(item: e: 45)
+INFO - +++ insert_kv(bt_key: i, value: 46)
+INFO - +++ insert(item: i: 46)
 INFO - +++ insert_kv(bt_key: 1, value: 47)
 INFO - +++ insert(item: 1: 47)
-INFO - +++ insert_kv(bt_key: D, value: 48)
-INFO - +++ insert(item: D: 48)
-INFO - +++ insert_kv(bt_key: f, value: 49)
-INFO - +++ insert(item: f: 49)
-INFO - +++ insert_kv(bt_key: r, value: 50)
-INFO - +++ insert(item: r: 50)
-INFO - +++ insert_kv(bt_key: h, value: 51)
-INFO - +++ insert(item: h: 51)
-INFO - +++ insert_kv(bt_key: y, value: 52)
-INFO - +++ insert(item: y: 52)
-INFO - +++ insert_kv(bt_key: a, value: 53)
-INFO - +++ insert(item: a: 53)
-INFO - +++ insert_kv(bt_key: w, value: 54)
-INFO - +++ insert(item: w: 54)
-INFO - +++ insert_kv(bt_key: Q, value: 55)
-INFO - +++ insert(item: Q: 55)
-INFO - +++ insert_kv(bt_key: 7, value: 56)
-INFO - +++ insert(item: 7: 56)
-INFO - +++ insert_kv(bt_key: x, value: 57)
-INFO - +++ insert(item: x: 57)
-INFO - +++ insert_kv(bt_key: S, value: 58)
-INFO - +++ insert(item: S: 58)
-INFO - +++ insert_kv(bt_key: Y, value: 59)
-INFO - +++ insert(item: Y: 59)
-INFO - +++ insert_kv(bt_key: 8, value: 60)
-INFO - +++ insert(item: 8: 60)
+INFO - +++ insert_kv(bt_key: d, value: 48)
+INFO - +++ insert(item: d: 48)
+INFO - +++ insert_kv(bt_key: D, value: 49)
+INFO - +++ insert(item: D: 49)
+INFO - +++ insert_kv(bt_key: 9, value: 50)
+INFO - +++ insert(item: 9: 50)
+INFO - +++ insert_kv(bt_key: 2, value: 51)
+INFO - +++ insert(item: 2: 51)
+INFO - +++ insert_kv(bt_key: 3, value: 52)
+INFO - +++ insert(item: 3: 52)
+INFO - +++ insert_kv(bt_key: 7, value: 53)
+INFO - +++ insert(item: 7: 53)
+INFO - +++ insert_kv(bt_key: n, value: 54)
+INFO - +++ insert(item: n: 54)
+INFO - +++ insert_kv(bt_key: K, value: 55)
+INFO - +++ insert(item: K: 55)
+INFO - +++ insert_kv(bt_key: f, value: 56)
+INFO - +++ insert(item: f: 56)
+INFO - +++ insert_kv(bt_key: F, value: 57)
+INFO - +++ insert(item: F: 57)
+INFO - +++ insert_kv(bt_key: w, value: 58)
+INFO - +++ insert(item: w: 58)
+INFO - +++ insert_kv(bt_key: A, value: 59)
+INFO - +++ insert(item: A: 59)
+INFO - +++ insert_kv(bt_key: m, value: 60)
+INFO - +++ insert(item: m: 60)
 INFO - +++ insert_kv(bt_key: j, value: 61)
 INFO - +++ insert(item: j: 61)
 INFO - B-Tree Order: 4, minimum degree: 2, #items/node: 1 - 3, height: 3, items: 62
-INFO -             *0: 11
-INFO -              1: 47
-INFO -         *2: 4
-INFO -             *3: 9
-INFO -          4: 29
-INFO -             *5: 45
-INFO -          6: 32
-INFO -             *7: 56
-INFO -              8: 60
-INFO -     *9: 1
-INFO -             *A: 16
-INFO -         *B: 12
-INFO -             *C: 13
-INFO -      D: 48
-INFO -             *E: 37
-INFO -              F: 36
-INFO -         *G: 33
-INFO -             *H: 6
-INFO -          I: 41
-INFO -             *J: 42
-INFO -              K: 35
-INFO -              L: 18
-INFO - *M: 5
-INFO -             *N: 7
-INFO -         *O: 25
-INFO -             *P: 44
-INFO -          Q: 55
-INFO -             *R: 34
-INFO -              S: 58
-INFO -          T: 23
-INFO -             *U: 46
-INFO -              V: 38
-INFO -     *W: 21
-INFO -             *X: 10
-INFO -         *Y: 59
-INFO -             *Z: 31
-INFO -              a: 53
-INFO -  b: 3
-INFO -             *c: 27
-INFO -              d: 39
-INFO -         *e: 14
-INFO -             *f: 49
-INFO -          g: 28
-INFO -             *h: 51
-INFO -              i: 15
+INFO -             *0: 40
+INFO -         *1: 47
+INFO -             *2: 51
+INFO -          3: 52
+INFO -             *4: 39
+INFO -              5: 44
+INFO -     *6: 1
+INFO -             *7: 53
+INFO -         *8: 42
+INFO -             *9: 50
+INFO -              A: 59
+INFO - *B: 23
+INFO -             *C: 27
+INFO -              D: 49
+INFO -         *E: 3
+INFO -             *F: 57
+INFO -              G: 19
+INFO -          H: 10
+INFO -             *I: 26
+INFO -              J: 15
+INFO -              K: 55
+INFO -     *L: 9
+INFO -             *M: 22
+INFO -              N: 35
+INFO -         *O: 30
+INFO -             *P: 43
+INFO -      Q: 8
+INFO -             *R: 41
+INFO -              S: 33
+INFO -         *T: 4
+INFO -             *U: 24
+INFO -          V: 16
+INFO -             *W: 11
+INFO -              X: 13
+INFO -  Y: 2
+INFO -             *Z: 38
+INFO -              a: 17
+INFO -         *b: 14
+INFO -             *c: 0
+INFO -              d: 48
+INFO -          e: 45
+INFO -             *f: 56
+INFO -          g: 12
+INFO -             *h: 21
+INFO -              i: 46
 INFO -              j: 61
-INFO -     *k: 8
-INFO -             *l: 0
-INFO -         *m: 2
-INFO -             *n: 22
-INFO -              o: 40
-INFO -      p: 17
-INFO -             *q: 30
-INFO -              r: 50
-INFO -              s: 24
-INFO -         *t: 19
-INFO -             *u: 26
+INFO -     *k: 6
+INFO -             *l: 32
+INFO -              m: 60
+INFO -              n: 54
+INFO -         *o: 31
+INFO -             *p: 18
+INFO -      q: 37
+INFO -             *r: 36
+INFO -              s: 25
+INFO -         *t: 7
+INFO -             *u: 29
 INFO -          v: 20
-INFO -             *w: 54
-INFO -          x: 57
-INFO -             *y: 52
-INFO -              z: 43
+INFO -             *w: 58
+INFO -          x: 34
+INFO -             *y: 28
+INFO -              z: 5
 INFO - ---------------
 INFO - sorted letters:   0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 INFO - letters in btree: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 INFO - letter order in btree is correct
 INFO - === iterator and sequence test ===
 INFO - get items by indices, like: "for item in btree[35:9:-1]"
-INFO - Z: 31
-INFO - Y: 59
-INFO - X: 10
-INFO - W: 21
-INFO - V: 38
-INFO - U: 46
-INFO - T: 23
-INFO - S: 58
-INFO - R: 34
-INFO - Q: 55
-INFO - P: 44
-INFO - O: 25
-INFO - N: 7
-INFO - M: 5
-INFO - L: 18
-INFO - K: 35
-INFO - J: 42
-INFO - I: 41
-INFO - H: 6
-INFO - G: 33
-INFO - F: 36
-INFO - E: 37
-INFO - D: 48
-INFO - C: 13
-INFO - B: 12
-INFO - A: 16
-INFO - btree[10]: A: 16
+INFO - Z: 38
+INFO - Y: 2
+INFO - X: 13
+INFO - W: 11
+INFO - V: 16
+INFO - U: 24
+INFO - T: 4
+INFO - S: 33
+INFO - R: 41
+INFO - Q: 8
+INFO - P: 43
+INFO - O: 30
+INFO - N: 35
+INFO - M: 22
+INFO - L: 9
+INFO - K: 55
+INFO - J: 15
+INFO - I: 26
+INFO - H: 10
+INFO - G: 19
+INFO - F: 57
+INFO - E: 3
+INFO - D: 49
+INFO - C: 27
+INFO - B: 23
+INFO - A: 59
+INFO - btree[10]: A: 59
 INFO - del btree[10]
-INFO - --- delete(bt_key: None, item: A: 16) = A: 16
-INFO - btree[10]: B: 12
+INFO - --- delete(bt_key: None, item: A: 59) = A: 59
+INFO - btree[10]: B: 23
 INFO - "btree[20] in btr" is True
 INFO - === search() and delete() test ===
 INFO - B-Tree Order: 4, minimum degree: 2, #items/node: 1 - 3, height: 0, items: 0

@@ -9,6 +9,7 @@ __all__ = [
 
     'btree_item',  # only contains one member: bt_key
     'btree_kv',  # based on btree_item, has an additional member value
+    # 'btree_items',  # key_range(), key_range_start(), key_range_end()
     # 'btree_node',  # internal use only
     'btree',  # main class
 ]
@@ -67,7 +68,7 @@ Deletion from a B-tree is analogous to insertion but a little more complicated.
 '''
 
 BTREE_MIN_DEGREE_MIN = 2
-BTREE_MIN_DEGREE_DEFAULT = 7
+BTREE_MIN_DEGREE_DEFAULT = 1023
 
 
 class btree_item:
@@ -95,6 +96,57 @@ class btree_kv(btree_item):
         return f'{self.bt_key}: {self.value}'
 
 
+class btree_items(list):
+
+    '''
+    Searching key range bases on faster binary search
+    '''
+
+    def key_range_start(self, key, right=None):
+        # if right edge (end) is unknown, search whole list
+        if right is None:
+            right = len(self)
+
+        if not (self and right and key > self[0].bt_key):
+            return 0
+
+        if key > self[right - 1].bt_key:
+            return right
+        right -= 1
+
+        ''' [left] < key <= [right] '''
+        left = 0
+        while left + 1 < right:
+            mid = (left + right) >> 1
+            if key > self[mid].bt_key:
+                left = mid
+            else:
+                right = mid
+        return left + 1
+
+    def key_range_end(self, key):
+        if not self or key < self[0].bt_key:
+            return 0
+
+        left, right = 0, len(self) - 1
+        if key < self[right].bt_key:
+            ''' [left] <= key < [right] '''
+            while left + 1 < right:
+                mid = (left + right) >> 1
+                if key < self[mid].bt_key:
+                    right = mid
+                else:
+                    left = mid
+            return right
+        else:
+            ''' key = [right] '''
+            return right + 1
+
+    def key_range(self, key):
+        end = self.key_range_end(key)
+        return self.key_range_start(key, end), end
+
+
 class btree_node:
 
     def __init__(self,
@@ -103,7 +155,7 @@ class btree_node:
                  children: ['btree_node']=None):
         self.min_degree = min_degree
         self.max_degree = 2 * min_degree - 1
-        self.items = items or []  # as keys
+        self.items = btree_items(items or [])  # as keys
         self.children: [btree_node] = children or []
 
         # number of items in the subtree
@@ -234,26 +286,32 @@ class btree_node:
                 if ret:
                     return ret
 
-    def search(self, matches:[btree_item], bt_key):
-        for i, item in enumerate(self.items):
-            # current bt_key is too small, skip recursive
-            if item.bt_key < bt_key:
-                continue
-
-            # try the child even if current bt_key is bigger
-            if self.children:
-                self.children[i].search(matches, bt_key)
-
-            # current bt_key is bigger, no more
-            if  item.bt_key > bt_key:
-                return  # don't search rest
-
-            # pretty match
-            matches += [item]
-
-        # search in last child
+    def descendants(self, matches:[btree_item]):
         if self.children:
-            self.children[-1].search(matches, bt_key)
+            for i, item in enumerate(self.items):
+                self.children[i].descendants(matches)
+                matches += [item]
+            self.children[-1].descendants(matches)
+        else:
+            matches += self.items
+
+    def search(self, matches:[btree_item], bt_key):
+        start, end = self.items.key_range(bt_key)
+        if self.children:
+            # previous child may has more item matched
+            self.children[start].search(matches, bt_key)
+            if start < end:
+                matches += [self.items[start]]
+                start += 1
+                while start < end:
+                    self.children[start].descendants(matches)
+                    matches += [self.items[start]]
+                    start += 1
+                # next child may has more item matched
+                self.children[end].search(matches, bt_key)
+        else:
+            matches += self.items[start:end]
+        return
 
     def split(self) -> (btree_item, 'btree_node'):
         # right node takes right half of items and children
@@ -268,15 +326,10 @@ class btree_node:
         return self.items.pop(n - 1), right
 
     def insert(self, bt_key, item: btree_item) -> bool:
-        i = 0
-        for it in self.items:
-            # pass over the item which bt_key is same
-            # if bt_key is same, new one is on the right (FIFO)
-            if it.bt_key > bt_key:
-                break
-            i += 1
-
         self.n_item += 1  # each node on the path increased 1 item
+
+        # FIFO: insert into the right
+        i = self.items.key_range_end(bt_key)
         if self.children:
             if self.children[i].insert(bt_key, item):
                 # child is full, split it
@@ -350,19 +403,23 @@ class btree_node:
         return child
 
     def delete(self, bt_key, item:btree_item=None) -> None or btree_item:
+        start, end = self.items.key_range(bt_key)
+
         # leaf node
         if not self.children:
-            for index, it in enumerate(self.items):
-                if it == item or not item and it.bt_key == bt_key:
+            if start < end:
+                if item is None:
                     self.n_item -= 1
-                    return self.items.pop(index)
+                    return self.items.pop(start)
+
+                while start < end:
+                    if self.items[start] == item:
+                        self.n_item -= 1
+                        return self.items.pop(start)
+                    start += 1
             return
 
-        # internal node
-        for index, it in enumerate(self.items):
-            if it.bt_key < bt_key:
-                continue
-
+        for index in range(start, end):
             # found it in left child?
             found = self._get_child(index).delete(bt_key, item)
             if found:
@@ -370,7 +427,8 @@ class btree_node:
                 return found
 
             # found it in items?
-            if it == item or not item and it.bt_key == bt_key:
+            it = self.items[index]
+            if not item or it == item:
 
                 def move_out_item(subtree, which):
                     '''
@@ -399,12 +457,8 @@ class btree_node:
                 self.n_item -= 1
                 return it
 
-            if it.bt_key > bt_key:
-                return  # don't need to try the rest items and children
-
-        # try last child
-        index = len(self.items)
-        found = self._get_child(index).delete(bt_key, item)
+        # try next child
+        found = self._get_child(end).delete(bt_key, item)
         if found:
             self.n_item -= 1  # every node lost 1 item on the path
             return found
@@ -530,6 +584,51 @@ if "__main__" == __name__:
     except:
         logger = logging
         logging.basicConfig(level=logging.INFO)
+
+    class btree_items_debug(btree_items):
+
+        def key_range_slow(self, key):
+            left, right = -1, -1
+            for i, it in enumerate(self):
+                if key < it.bt_key:  # right side of the range
+                    break
+                if key > it.bt_key:  # left side of the range
+                    left = right = i
+                else:  # = in the range
+                    right = i
+
+            return left + 1, right + 1
+
+        def verify(self, key):
+            start, end = self.key_range(key)
+            logger.info(f'{key}: {start}, {end} {self[start:end]} of {self}')
+            r = self.key_range_slow(key)
+            if r != (start, end):
+                logger.error(f'!!!!!!!! {(start, end)} != {r}')
+            return end
+
+        def insert_verify(self, key):
+            logger.info(f'insert {key}:')
+            self.insert(self.verify(key), btree_item(key))
+
+            self.verify(key)
+
+        @classmethod
+        def test(cls):
+            logger.info('=== binary range searching cases ===')
+
+            items = cls()
+            for key in (10, 10, 8, 12, 9, 11):
+                items.insert_verify(key)
+
+            items = cls([btree_item(i * 2) for i in range(10, 21)])
+            for key in (18, 19, 20, 21, 22, 30, 38, 39, 40, 41, 42):
+                items.verify(key)
+
+            for key in (30, 30, 30, 18, 19, 39, 41, 42):
+                items.insert_verify(key)
+
+    btree_items_debug.test()
 
     class btree_debug(btree):
 
