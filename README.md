@@ -20,7 +20,7 @@ B-Tree implementation with pure Python by Forrest Zhang (Forrest@263.net)
 ## API
 * constants:
     * BTREE_MIN_DEGREE_MIN = 2
-    * BTREE_MIN_DEGREE_DEFAULT = 7
+    * BTREE_MIN_DEGREE_DEFAULT = 1023
 
 * class btree_item:
     * member: bt_key
@@ -29,6 +29,11 @@ B-Tree implementation with pure Python by Forrest Zhang (Forrest@263.net)
 * class btree_kv(btree_item):
     * member: value
     * def \_\_init\_\_(self, key, value):
+
+* class btree_items(list):  # internal use
+    * def key_range_start(self, key, right:int=None) -> int:
+    * def key_range_end(self, key) -> int:
+    * def key_range(self, key) -> int, int:
 
 * class btree:
     * operator: in
