@@ -7,7 +7,8 @@ B-Tree implementation with pure Python by Forrest Zhang (Forrest@263.net)
 * Allow more items with same key (FIFO)
     * new item with same key will be placed at right side
     * early inserted item will be deleted firstly
-* Get item(s) by subscription __[]__:
+* Binary range search for the items with same key
+* list-like items management (Get item(s) by subscription __[]__):
     * btree[3]: get the 4th item
     * btree[20:10:-1]: get slice of items and in reversed order
     * del btree[3]: delete the 4th item
